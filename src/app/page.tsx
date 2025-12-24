@@ -6,7 +6,8 @@ import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { FilterBar, SortOption } from "@/components/FilterBar";
 import { DeleteConfirmation } from "@/components/DeleteConfirmation";
-import { Card } from "@/components/ui/card";
+import { Navbar01 } from "@/components/ui/navbar";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardList } from "lucide-react";
 
@@ -97,37 +98,46 @@ export default function Home() {
   }, [tasks]);
 
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Task Management Dashboard
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Organize and track your tasks efficiently
-          </p>
-
-          {/* Task Statistics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <Card className="p-4">
+    <main className="min-h-screen bg-background">
+      <Navbar01
+        logo={<ClipboardList className="h-6 w-6" />}
+        navigationLinks={[
+          { href: "#", label: "Tasks", active: true },
+          { href: "#", label: "Calendar" },
+          { href: "#", label: "Analytics" },
+        ]}
+        signInText="Sign In"
+        ctaText="Add Task"
+        onCtaClick={handleCreateTask}
+      />
+      <div className="mx-auto max-w-7xl px-4 md:px-8 pb-8 pt-6">
+        {/* Task Statistics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">Total Tasks</p>
               <p className="text-2xl font-bold mt-1">{taskCounts.total}</p>
-            </Card>
-            <Card className="p-4">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">To Do</p>
               <p className="text-2xl font-bold text-muted-foreground mt-1">{taskCounts.todo}</p>
-            </Card>
-            <Card className="p-4">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">In Progress</p>
               <p className="text-2xl font-bold text-primary mt-1">{taskCounts.inProgress}</p>
-            </Card>
-            <Card className="p-4">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">Completed</p>
               <p className="text-2xl font-bold text-green-600 mt-1">{taskCounts.completed}</p>
-            </Card>
-          </div>
-        </header>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Filter and Sort Bar */}
         <FilterBar
@@ -140,19 +150,21 @@ export default function Home() {
 
         {/* Task List */}
         {filteredAndSortedTasks.length === 0 ? (
-          <Card className="p-12 text-center">
-            <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-medium">No tasks found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {statusFilter === "all"
-                ? "Get started by creating your first task"
-                : `No tasks with status: ${statusFilter}`}
-            </p>
-            {statusFilter === "all" && (
-              <Button onClick={handleCreateTask} className="mt-6">
-                Create Task
-              </Button>
-            )}
+          <Card>
+            <CardContent className="py-12 text-center">
+              <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium">No tasks found</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {statusFilter === "all"
+                  ? "Get started by creating your first task"
+                  : `No tasks with status: ${statusFilter}`}
+              </p>
+              {statusFilter === "all" && (
+                <Button onClick={handleCreateTask} className="mt-6">
+                  Create Task
+                </Button>
+              )}
+            </CardContent>
           </Card>
         ) : (
           <div className="space-y-4" role="list" aria-label="Task list">

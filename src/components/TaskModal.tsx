@@ -107,7 +107,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {task ? "Edit Task" : "Create New Task"}
@@ -125,12 +125,9 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task title"
               aria-invalid={errors.title ? "true" : "false"}
-              aria-describedby={errors.title ? "title-error" : undefined}
             />
             {errors.title && (
-              <p id="title-error" className="text-sm text-destructive">
-                {errors.title}
-              </p>
+              <p className="text-sm text-destructive">{errors.title}</p>
             )}
           </div>
 
@@ -145,7 +142,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={status} onValueChange={(value) => setStatus(value as TaskStatus)}>
@@ -185,24 +182,21 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               aria-invalid={errors.dueDate ? "true" : "false"}
-              aria-describedby={errors.dueDate ? "dueDate-error" : undefined}
             />
             {errors.dueDate && (
-              <p id="dueDate-error" className="text-sm text-destructive">
-                {errors.dueDate}
-              </p>
+              <p className="text-sm text-destructive">{errors.dueDate}</p>
             )}
           </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {task ? "Update Task" : "Create Task"}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" onClick={handleSubmit}>
+            {task ? "Update Task" : "Create Task"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
