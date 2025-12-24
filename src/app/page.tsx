@@ -1,99 +1,191 @@
-import { mockTasks } from "@/lib/data";
+"use client";
 
-/**
- * ============================================================================
- * TASK MANAGEMENT DASHBOARD
- * ============================================================================
- *
- * Welcome! This is your starting point.
- *
- * Your task is to build a Task Management Dashboard. Please read the README.md
- * file for complete instructions and requirements.
- *
- * The mock data is available in @/lib/data.ts - feel free to explore it first.
- *
- * Good luck! 🚀
- * ============================================================================
- */
+import { useState, useMemo } from "react";
+import { mockTasks, Task, TaskStatus, generateId } from "@/lib/data";
+import { TaskCard } from "@/components/TaskCard";
+import { TaskModal } from "@/components/TaskModal";
+import { FilterBar, SortOption } from "@/components/FilterBar";
+import { DeleteConfirmation } from "@/components/DeleteConfirmation";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ClipboardList } from "lucide-react";
 
 export default function Home() {
+  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [sortBy, setSortBy] = useState<SortOption>("dueDate");
+
+  const filteredAndSortedTasks = useMemo(() => {
+    let filtered = tasks;
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((task) => task.status === statusFilter);
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "dueDate":
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        case "priority": {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
+        case "createdAt":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [tasks, statusFilter, sortBy]);
+
+  const handleCreateTask = () => {
+    setEditingTask(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveTask = (taskData: Omit<Task, "id" | "createdAt">) => {
+    if (editingTask) {
+      // Update existing task
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === editingTask.id
+            ? { ...task, ...taskData }
+            : task
+        )
+      );
+    } else {
+      // Create new task
+      const newTask: Task = {
+        ...taskData,
+        id: generateId(),
+        createdAt: new Date().toISOString().split("T")[0],
+      };
+      setTasks((prevTasks) => [...prevTasks, newTask]);
+    }
+  };
+
+  const handleDeleteTask = (task: Task) => {
+    setDeletingTask(task);
+  };
+
+  const confirmDelete = () => {
+    if (deletingTask) {
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== deletingTask.id));
+      setDeletingTask(null);
+    }
+  };
+
+  const taskCounts = useMemo(() => {
+    return {
+      total: tasks.length,
+      todo: tasks.filter((t) => t.status === "todo").length,
+      inProgress: tasks.filter((t) => t.status === "in-progress").length,
+      completed: tasks.filter((t) => t.status === "completed").length,
+    };
+  }, [tasks]);
+
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-background p-4 md:p-8">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl md:text-4xl font-bold">
             Task Management Dashboard
           </h1>
-          <p className="mt-2 text-gray-600">
-            Welcome! Start building your task dashboard here.
+          <p className="mt-2 text-muted-foreground">
+            Organize and track your tasks efficiently
           </p>
+
+          {/* Task Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground font-medium">Total Tasks</p>
+              <p className="text-2xl font-bold mt-1">{taskCounts.total}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground font-medium">To Do</p>
+              <p className="text-2xl font-bold text-muted-foreground mt-1">{taskCounts.todo}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground font-medium">In Progress</p>
+              <p className="text-2xl font-bold text-primary mt-1">{taskCounts.inProgress}</p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground font-medium">Completed</p>
+              <p className="text-2xl font-bold text-green-600 mt-1">{taskCounts.completed}</p>
+            </Card>
+          </div>
         </header>
 
-        {/* Placeholder - Replace this with your implementation */}
-        <div className="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center">
-          <div className="mx-auto max-w-md">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              Start Building!
-            </h3>
-            <p className="mt-2 text-sm text-gray-500">
-              Check out the README.md for task requirements and the mock data in
-              @/lib/data.ts
+        {/* Filter and Sort Bar */}
+        <FilterBar
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
+          onCreateTask={handleCreateTask}
+        />
+
+        {/* Task List */}
+        {filteredAndSortedTasks.length === 0 ? (
+          <Card className="p-12 text-center">
+            <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-medium">No tasks found</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {statusFilter === "all"
+                ? "Get started by creating your first task"
+                : `No tasks with status: ${statusFilter}`}
             </p>
-
-            {/* Quick reference: showing the mock data structure */}
-            <div className="mt-6 text-left">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Sample Task Data ({mockTasks.length} tasks available):
-              </p>
-              <pre className="overflow-x-auto rounded-md bg-gray-100 p-3 text-xs text-gray-700">
-                {JSON.stringify(mockTasks[0], null, 2)}
-              </pre>
-            </div>
+            {statusFilter === "all" && (
+              <Button onClick={handleCreateTask} className="mt-6">
+                Create Task
+              </Button>
+            )}
+          </Card>
+        ) : (
+          <div className="space-y-4" role="list" aria-label="Task list">
+            {filteredAndSortedTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onEdit={handleEditTask}
+                onDelete={handleDeleteTask}
+              />
+            ))}
           </div>
-        </div>
-
-        {/* Tips Section */}
-        <div className="mt-8 rounded-lg bg-blue-50 p-6">
-          <h2 className="text-lg font-semibold text-blue-900">
-            💡 Getting Started Tips
-          </h2>
-          <ul className="mt-3 space-y-2 text-sm text-blue-800">
-            <li>
-              • Create your components in the{" "}
-              <code className="rounded bg-blue-100 px-1">src/components</code>{" "}
-              folder
-            </li>
-            <li>
-              • Use the types defined in{" "}
-              <code className="rounded bg-blue-100 px-1">@/lib/data.ts</code> or
-              create your own
-            </li>
-            <li>
-              • Consider using React&apos;s useState for local state management
-            </li>
-            <li>
-              • Tailwind CSS is already configured - check the docs at
-              tailwindcss.com
-            </li>
-            <li>• Delete this placeholder section when you start building!</li>
-          </ul>
-        </div>
+        )}
       </div>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTask(null);
+        }}
+        onSave={handleSaveTask}
+        task={editingTask}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        isOpen={!!deletingTask}
+        task={deletingTask}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeletingTask(null)}
+      />
     </main>
   );
 }
