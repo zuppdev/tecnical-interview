@@ -30,8 +30,8 @@ export function DeleteConfirmation({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-destructive" />
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center animate-in zoom-in-50 duration-300">
+              <AlertTriangle className="w-6 h-6 text-destructive animate-pulse" />
             </div>
             <div className="flex-1">
               <DialogTitle>Delete Task</DialogTitle>
@@ -50,10 +50,10 @@ export function DeleteConfirmation({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} className="transition-all hover:scale-105 active:scale-95">
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button variant="destructive" onClick={onConfirm} className="transition-all hover:scale-105 active:scale-95">
             Delete
           </Button>
         </DialogFooter>

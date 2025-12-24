@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { mockTasks, Task, TaskStatus, generateId } from "@/lib/data";
+import { useState, useMemo, useEffect } from "react";
+import { Task, TaskStatus } from "@/lib/data";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { FilterBar, SortOption } from "@/components/FilterBar";
@@ -12,12 +12,33 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList } from "lucide-react";
 
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [sortBy, setSortBy] = useState<SortOption>("dueDate");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch tasks on component mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/tasks");
+      if (response.ok) {
+        const data = await response.json();
+        setTasks(data);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredAndSortedTasks = useMemo(() => {
     let filtered = tasks;
@@ -56,24 +77,39 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleSaveTask = (taskData: Omit<Task, "id" | "createdAt">) => {
-    if (editingTask) {
-      // Update existing task
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === editingTask.id
-            ? { ...task, ...taskData }
-            : task
-        )
-      );
-    } else {
-      // Create new task
-      const newTask: Task = {
-        ...taskData,
-        id: generateId(),
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setTasks((prevTasks) => [...prevTasks, newTask]);
+  const handleSaveTask = async (taskData: Omit<Task, "id" | "createdAt">) => {
+    try {
+      if (editingTask) {
+        // Update existing task
+        const response = await fetch(`/api/tasks/${editingTask.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(taskData),
+        });
+
+        if (response.ok) {
+          const updatedTask = await response.json();
+          setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+              task.id === editingTask.id ? updatedTask : task
+            )
+          );
+        }
+      } else {
+        // Create new task
+        const response = await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(taskData),
+        });
+
+        if (response.ok) {
+          const newTask = await response.json();
+          setTasks((prevTasks) => [...prevTasks, newTask]);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving task:", error);
     }
   };
 
@@ -81,10 +117,21 @@ export default function Home() {
     setDeletingTask(task);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingTask) {
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== deletingTask.id));
-      setDeletingTask(null);
+      try {
+        const response = await fetch(`/api/tasks/${deletingTask.id}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          setTasks((prevTasks) => prevTasks.filter((task) => task.id !== deletingTask.id));
+        }
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      } finally {
+        setDeletingTask(null);
+      }
     }
   };
 
@@ -113,28 +160,28 @@ export default function Home() {
       <div className="mx-auto max-w-7xl px-4 md:px-8 pb-8 pt-6">
         {/* Task Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-top-4 duration-300 delay-75">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">Total Tasks</p>
-              <p className="text-2xl font-bold mt-1">{taskCounts.total}</p>
+              <p className="text-2xl font-bold mt-1 transition-all duration-300">{taskCounts.total}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-top-4 duration-300 delay-150">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">To Do</p>
-              <p className="text-2xl font-bold text-muted-foreground mt-1">{taskCounts.todo}</p>
+              <p className="text-2xl font-bold text-muted-foreground mt-1 transition-all duration-300">{taskCounts.todo}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-top-4 duration-300 delay-200">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">In Progress</p>
-              <p className="text-2xl font-bold text-primary mt-1">{taskCounts.inProgress}</p>
+              <p className="text-2xl font-bold text-primary mt-1 transition-all duration-300">{taskCounts.inProgress}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in-50 slide-in-from-top-4 duration-300 delay-300">
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground font-medium">Completed</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">{taskCounts.completed}</p>
+              <p className="text-2xl font-bold text-green-600 mt-1 transition-all duration-300">{taskCounts.completed}</p>
             </CardContent>
           </Card>
         </div>
@@ -149,7 +196,14 @@ export default function Home() {
         />
 
         {/* Task List */}
-        {filteredAndSortedTasks.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground animate-pulse" />
+              <h3 className="mt-4 text-lg font-medium">Loading tasks...</h3>
+            </CardContent>
+          </Card>
+        ) : filteredAndSortedTasks.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -168,13 +222,18 @@ export default function Home() {
           </Card>
         ) : (
           <div className="space-y-4" role="list" aria-label="Task list">
-            {filteredAndSortedTasks.map((task) => (
-              <TaskCard
+            {filteredAndSortedTasks.map((task, index) => (
+              <div
                 key={task.id}
-                task={task}
-                onEdit={handleEditTask}
-                onDelete={handleDeleteTask}
-              />
+                className="animate-in fade-in-50 slide-in-from-bottom-4 duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <TaskCard
+                  task={task}
+                  onEdit={handleEditTask}
+                  onDelete={handleDeleteTask}
+                />
+              </div>
             ))}
           </div>
         )}

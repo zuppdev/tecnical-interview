@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DateTimePicker } from "@/components/DatePicker";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<TaskStatus>("todo");
   const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [errors, setErrors] = useState<{ title?: string; dueDate?: string }>({});
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
       setDescription(task.description);
       setStatus(task.status);
       setPriority(task.priority);
-      setDueDate(task.dueDate);
+      setDueDate(new Date(task.dueDate));
     } else {
       resetForm();
     }
@@ -54,7 +55,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
     setDescription("");
     setStatus("todo");
     setPriority("medium");
-    setDueDate("");
+    setDueDate(undefined);
     setErrors({});
   };
 
@@ -68,11 +69,8 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
     if (!dueDate) {
       newErrors.dueDate = "Due date is required";
     } else {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selectedDate = new Date(dueDate);
-
-      if (!task && selectedDate < today) {
+      const now = new Date();
+      if (!task && dueDate < now) {
         newErrors.dueDate = "Due date must be in the future";
       }
     }
@@ -93,7 +91,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
       description: description.trim(),
       status,
       priority,
-      dueDate,
+      dueDate: dueDate!.toISOString(),
     });
 
     resetForm();
@@ -172,28 +170,21 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">
-              Due Date <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              type="date"
-              id="dueDate"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              aria-invalid={errors.dueDate ? "true" : "false"}
-            />
-            {errors.dueDate && (
-              <p className="text-sm text-destructive">{errors.dueDate}</p>
-            )}
-          </div>
+          <DateTimePicker
+            id="dueDate"
+            label="Due Date"
+            value={dueDate}
+            onChange={setDueDate}
+            error={errors.dueDate}
+            required
+          />
         </form>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>
+          <Button type="button" variant="outline" onClick={handleClose} className="transition-all hover:scale-105 active:scale-95">
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button type="submit" onClick={handleSubmit} className="transition-all hover:scale-105 active:scale-95">
             {task ? "Update Task" : "Create Task"}
           </Button>
         </DialogFooter>

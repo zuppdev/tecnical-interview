@@ -37,7 +37,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   return (
     <Card
       className={cn(
-        "transition-all hover:shadow-md",
+        "transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5",
         priorityCardVariants[task.priority]
       )}
       role="article"
@@ -65,7 +65,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
             <div className="flex items-center gap-3 flex-wrap text-sm">
               <Badge
                 variant="outline"
-                className={cn("border", statusVariants[task.status])}
+                className={cn("border transition-all duration-200", statusVariants[task.status])}
               >
                 {task.status === "in-progress" ? "In Progress" : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
               </Badge>
@@ -86,6 +86,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
               variant="ghost"
               size="icon"
               aria-label={`Edit task: ${task.title}`}
+              className="transition-transform hover:scale-110 active:scale-95"
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -94,6 +95,7 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
               variant="ghost"
               size="icon"
               aria-label={`Delete task: ${task.title}`}
+              className="transition-transform hover:scale-110 active:scale-95"
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>

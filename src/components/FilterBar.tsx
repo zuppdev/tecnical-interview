@@ -29,7 +29,7 @@ export function FilterBar({
   onCreateTask,
 }: FilterBarProps) {
   return (
-    <Card className="p-4 mb-6">
+    <Card className="p-4 mb-6 animate-in fade-in-50 slide-in-from-top-2 duration-300 delay-150">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full md:w-auto">
           <div className="flex-1 sm:flex-initial space-y-2">
@@ -64,10 +64,10 @@ export function FilterBar({
 
         <Button
           onClick={onCreateTask}
-          className="w-full md:w-auto md:mt-8"
+          className="w-full md:w-auto md:mt-8 transition-all hover:scale-105 active:scale-95"
           aria-label="Create new task"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
           Create Task
         </Button>
       </div>
