@@ -9,8 +9,18 @@ import { DeleteConfirmation } from "@/components/DeleteConfirmation";
 import { Navbar01 } from "@/components/ui/navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Search, CheckCircle2, Circle, Clock } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -21,10 +31,28 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("dueDate");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [isLoading, setIsLoading] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Fetch tasks on component mount
   useEffect(() => {
     fetchTasks();
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+      if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleCreateTask();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
   const fetchTasks = async () => {
@@ -204,6 +232,22 @@ export default function Home() {
         ctaText="Add Task"
         onCtaClick={handleCreateTask}
       />
+      <div className="mx-auto max-w-7xl px-4 md:px-8 pt-4">
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="relative flex-1 justify-start text-sm text-muted-foreground"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search className="mr-2 h-4 w-4" />
+            <span className="flex-1 text-left">Search tasks...</span>
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
+          <ThemeToggle />
+        </div>
+      </div>
       <div className="mx-auto max-w-7xl px-4 md:px-8 pb-8 pt-6">
         {/* Task Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -313,6 +357,51 @@ export default function Home() {
         onConfirm={confirmDelete}
         onCancel={() => setDeletingTask(null)}
       />
+
+      {/* Command Palette for Search */}
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <CommandInput placeholder="Search tasks..." />
+        <CommandList>
+          <CommandEmpty>No tasks found.</CommandEmpty>
+          <CommandGroup heading="Tasks">
+            {tasks.map((task) => {
+              const statusIcons = {
+                todo: <Circle className="h-4 w-4" />,
+                "in-progress": <Clock className="h-4 w-4" />,
+                completed: <CheckCircle2 className="h-4 w-4" />,
+              };
+              return (
+                <CommandItem
+                  key={task.id}
+                  value={`${task.title} ${task.description || ""}`}
+                  onSelect={() => {
+                    handleEditTask(task);
+                    setSearchOpen(false);
+                  }}
+                >
+                  {statusIcons[task.status]}
+                  <span className="flex-1">{task.title}</span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {task.priority}
+                  </span>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="Actions">
+            <CommandItem
+              onSelect={() => {
+                handleCreateTask();
+                setSearchOpen(false);
+              }}
+            >
+              <ClipboardList className="h-4 w-4" />
+              <span>Create New Task</span>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </main>
   );
 }
