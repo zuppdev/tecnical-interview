@@ -92,20 +92,6 @@ src/
 
 ---
 
-## 📝 Evaluation Criteria
-
-We will evaluate your submission based on:
-
-| Criteria | Weight |
-|----------|--------|
-| **Code Quality** - Clean, readable, well-organized code | 25% |
-| **TypeScript Usage** - Proper typing, interfaces, type safety | 20% |
-| **UI/UX Design** - Visual appeal, user experience, responsiveness | 25% |
-| **Functionality** - All features work correctly | 20% |
-| **Best Practices** - Component structure, state management, accessibility | 10% |
-
----
-
 ## 💡 Bonus Points (Optional)
 
 If you have extra time and want to showcase more skills:
