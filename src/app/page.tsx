@@ -4,12 +4,13 @@ import { useState, useMemo, useEffect } from "react";
 import { Task, TaskStatus } from "@/lib/data";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
-import { FilterBar, SortOption } from "@/components/FilterBar";
+import { FilterBar, SortOption, ViewMode } from "@/components/FilterBar";
 import { DeleteConfirmation } from "@/components/DeleteConfirmation";
 import { Navbar01 } from "@/components/ui/navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardList } from "lucide-react";
+import { Kanban } from "@/components/Kanban";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -18,6 +19,7 @@ export default function Home() {
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [sortBy, setSortBy] = useState<SortOption>("dueDate");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch tasks on component mount
@@ -135,6 +137,28 @@ export default function Home() {
     }
   };
 
+  const handleTaskStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    try {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...task, status: newStatus }),
+      });
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === taskId ? updatedTask : t))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+    }
+  };
+
   const taskCounts = useMemo(() => {
     return {
       total: tasks.length,
@@ -192,10 +216,12 @@ export default function Home() {
           onStatusFilterChange={setStatusFilter}
           sortBy={sortBy}
           onSortByChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
           onCreateTask={handleCreateTask}
         />
 
-        {/* Task List */}
+        {/* Task List or Kanban View */}
         {isLoading ? (
           <Card>
             <CardContent className="py-12 text-center">
@@ -220,6 +246,12 @@ export default function Home() {
               )}
             </CardContent>
           </Card>
+        ) : viewMode === "kanban" ? (
+          <Kanban
+            tasks={filteredAndSortedTasks}
+            onTaskStatusChange={handleTaskStatusChange}
+            onTaskClick={handleEditTask}
+          />
         ) : (
           <div className="space-y-4" role="list" aria-label="Task list">
             {filteredAndSortedTasks.map((task, index) => (
