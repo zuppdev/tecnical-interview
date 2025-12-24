@@ -18,7 +18,8 @@ function initializeDatabase() {
       status TEXT NOT NULL CHECK (status IN ('todo', 'in-progress', 'completed')),
       priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high')),
       dueDate TEXT NOT NULL,
-      createdAt TEXT NOT NULL
+      createdAt TEXT NOT NULL,
+      "order" INTEGER NOT NULL DEFAULT 0
     )
   `;
 
@@ -30,8 +31,8 @@ function initializeDatabase() {
   if (count.count === 0) {
     // Seed with mock data
     const insert = db.prepare(`
-      INSERT INTO tasks (id, title, description, status, priority, dueDate, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO tasks (id, title, description, status, priority, dueDate, createdAt, "order")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertMany = db.transaction((tasks: Task[]) => {
@@ -43,7 +44,8 @@ function initializeDatabase() {
           task.status,
           task.priority,
           task.dueDate,
-          task.createdAt
+          task.createdAt,
+          task.order
         );
       }
     });
@@ -59,7 +61,7 @@ initializeDatabase();
 export const dbOperations = {
   // Get all tasks
   getAllTasks(): Task[] {
-    const stmt = db.prepare("SELECT * FROM tasks ORDER BY createdAt DESC");
+    const stmt = db.prepare("SELECT * FROM tasks ORDER BY status, \"order\", createdAt DESC");
     return stmt.all() as Task[];
   },
 
@@ -72,8 +74,8 @@ export const dbOperations = {
   // Create task
   createTask(task: Task): Task {
     const stmt = db.prepare(`
-      INSERT INTO tasks (id, title, description, status, priority, dueDate, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO tasks (id, title, description, status, priority, dueDate, createdAt, "order")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -83,7 +85,8 @@ export const dbOperations = {
       task.status,
       task.priority,
       task.dueDate,
-      task.createdAt
+      task.createdAt,
+      task.order || 0
     );
 
     return task;
@@ -98,7 +101,7 @@ export const dbOperations = {
 
     const stmt = db.prepare(`
       UPDATE tasks
-      SET title = ?, description = ?, status = ?, priority = ?, dueDate = ?
+      SET title = ?, description = ?, status = ?, priority = ?, dueDate = ?, "order" = ?
       WHERE id = ?
     `);
 
@@ -108,6 +111,7 @@ export const dbOperations = {
       updated.status,
       updated.priority,
       updated.dueDate,
+      updated.order,
       id
     );
 
@@ -119,6 +123,23 @@ export const dbOperations = {
     const stmt = db.prepare("DELETE FROM tasks WHERE id = ?");
     const result = stmt.run(id);
     return result.changes > 0;
+  },
+
+  // Update multiple tasks (for reordering)
+  updateTasksOrder(tasks: Task[]): void {
+    const stmt = db.prepare(`
+      UPDATE tasks
+      SET "order" = ?, status = ?
+      WHERE id = ?
+    `);
+
+    const updateMany = db.transaction((tasksToUpdate: Task[]) => {
+      for (const task of tasksToUpdate) {
+        stmt.run(task.order, task.status, task.id);
+      }
+    });
+
+    updateMany(tasks);
   },
 };
 

@@ -14,6 +14,7 @@ interface KanbanProps {
   tasks: Task[];
   onTaskStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onTaskClick: (task: Task) => void;
+  onTaskOrderChange: (tasks: Task[]) => void;
 }
 
 type KanbanColumn = {
@@ -22,6 +23,7 @@ type KanbanColumn = {
 };
 
 type KanbanTaskItem = Task & {
+  name: string;
   column: TaskStatus;
 };
 
@@ -37,19 +39,54 @@ const priorityColors = {
   low: "bg-green-500",
 };
 
-export function Kanban({ tasks, onTaskStatusChange, onTaskClick }: KanbanProps) {
-  const kanbanData: KanbanTaskItem[] = tasks.map((task) => ({
+export function Kanban({ tasks, onTaskStatusChange, onTaskClick, onTaskOrderChange }: KanbanProps) {
+  // Sort tasks by order within each status
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.status !== b.status) {
+      return 0; // Don't sort across different statuses
+    }
+    return a.order - b.order;
+  });
+
+  const kanbanData: KanbanTaskItem[] = sortedTasks.map((task) => ({
     ...task,
+    name: task.title,
     column: task.status,
   }));
 
   const handleDataChange = (newData: KanbanTaskItem[]) => {
-    newData.forEach((item, index) => {
+    // Recalculate order for tasks within each column
+    const updatedTasks = newData.map((item) => {
+      const tasksInSameColumn = newData.filter((t) => t.column === item.column);
+      const orderInColumn = tasksInSameColumn.findIndex((t) => t.id === item.id);
+
+      const originalTask = tasks.find((t) => t.id === item.id);
+      if (!originalTask) return item;
+
+      return {
+        ...item,
+        order: orderInColumn,
+      };
+    });
+
+    // Handle status changes
+    updatedTasks.forEach((item) => {
       const originalTask = tasks.find((t) => t.id === item.id);
       if (originalTask && originalTask.status !== item.column) {
         onTaskStatusChange(item.id, item.column);
       }
     });
+
+    // Convert back to Task[] and notify parent of order changes
+    const tasksWithNewOrder = updatedTasks.map((item) => {
+      const { column, ...taskData } = item;
+      return {
+        ...taskData,
+        status: column,
+      } as Task;
+    });
+
+    onTaskOrderChange(tasksWithNewOrder);
   };
 
   const formatDate = (date: string) => {

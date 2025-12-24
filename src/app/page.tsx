@@ -159,6 +159,29 @@ export default function Home() {
     }
   };
 
+  const handleTaskOrderChange = async (updatedTasks: Task[]) => {
+    try {
+      // Update local state immediately for smooth UX
+      setTasks(updatedTasks);
+
+      // Persist order changes to the backend
+      const response = await fetch("/api/tasks/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: updatedTasks }),
+      });
+
+      if (!response.ok) {
+        // If the API call fails, revert to the original tasks
+        console.error("Error updating task order");
+        fetchTasks(); // Refetch to get the correct state
+      }
+    } catch (error) {
+      console.error("Error updating task order:", error);
+      fetchTasks(); // Refetch to get the correct state
+    }
+  };
+
   const taskCounts = useMemo(() => {
     return {
       total: tasks.length,
@@ -251,6 +274,7 @@ export default function Home() {
             tasks={filteredAndSortedTasks}
             onTaskStatusChange={handleTaskStatusChange}
             onTaskClick={handleEditTask}
+            onTaskOrderChange={handleTaskOrderChange}
           />
         ) : (
           <div className="space-y-4" role="list" aria-label="Task list">

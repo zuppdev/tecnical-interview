@@ -30,6 +30,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the max order for the status to add the new task at the end
+    const allTasks = dbOperations.getAllTasks();
+    const tasksInStatus = allTasks.filter(t => t.status === status);
+    const maxOrder = tasksInStatus.length > 0
+      ? Math.max(...tasksInStatus.map(t => t.order))
+      : -1;
+
     const newTask: Task = {
       id: generateId(),
       title,
@@ -38,6 +45,7 @@ export async function POST(request: NextRequest) {
       priority: priority as TaskPriority,
       dueDate,
       createdAt: new Date().toISOString().split("T")[0],
+      order: maxOrder + 1,
     };
 
     const createdTask = dbOperations.createTask(newTask);

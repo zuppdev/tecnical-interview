@@ -13,6 +13,7 @@ export interface Task {
   priority: TaskPriority;
   dueDate: string; // ISO date string
   createdAt: string; // ISO date string
+  order: number; // Order within the column
 }
 
 // =============================================================================
@@ -29,6 +30,7 @@ export const mockTasks: Task[] = [
     priority: "high",
     dueDate: "2025-01-15",
     createdAt: "2024-12-20",
+    order: 0,
   },
   {
     id: "2",
@@ -39,6 +41,7 @@ export const mockTasks: Task[] = [
     priority: "high",
     dueDate: "2025-01-10",
     createdAt: "2024-12-18",
+    order: 0,
   },
   {
     id: "3",
@@ -49,6 +52,7 @@ export const mockTasks: Task[] = [
     priority: "medium",
     dueDate: "2025-01-20",
     createdAt: "2024-12-19",
+    order: 1,
   },
   {
     id: "4",
@@ -59,6 +63,7 @@ export const mockTasks: Task[] = [
     priority: "medium",
     dueDate: "2024-12-22",
     createdAt: "2024-12-15",
+    order: 0,
   },
   {
     id: "5",
@@ -69,6 +74,7 @@ export const mockTasks: Task[] = [
     priority: "high",
     dueDate: "2025-01-05",
     createdAt: "2024-12-10",
+    order: 1,
   },
   {
     id: "6",
@@ -79,6 +85,7 @@ export const mockTasks: Task[] = [
     priority: "low",
     dueDate: "2025-02-01",
     createdAt: "2024-12-21",
+    order: 2,
   },
   {
     id: "7",
@@ -89,6 +96,7 @@ export const mockTasks: Task[] = [
     priority: "low",
     dueDate: "2024-12-20",
     createdAt: "2024-12-12",
+    order: 1,
   },
   {
     id: "8",
@@ -99,6 +107,7 @@ export const mockTasks: Task[] = [
     priority: "medium",
     dueDate: "2025-01-25",
     createdAt: "2024-12-22",
+    order: 3,
   },
 ];
 
