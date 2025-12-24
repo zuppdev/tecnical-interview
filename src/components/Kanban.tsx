@@ -25,6 +25,7 @@ type KanbanColumn = {
 type KanbanTaskItem = Task & {
   name: string;
   column: TaskStatus;
+  [key: string]: unknown;
 };
 
 const columns: KanbanColumn[] = [

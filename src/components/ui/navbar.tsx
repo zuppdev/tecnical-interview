@@ -73,6 +73,7 @@ export interface Navbar01NavLink {
   href: string;
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }
 export interface Navbar01Props extends React.HTMLAttributes<HTMLElement> {
   logo?: React.ReactNode;
@@ -166,11 +167,14 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index} className="w-full">
                         <button
-                          onClick={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (link.onClick) link.onClick();
+                          }}
                           className={cn(
                             "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline",
-                            link.active 
-                              ? "bg-accent text-accent-foreground" 
+                            link.active
+                              ? "bg-accent text-accent-foreground"
                               : "text-foreground/80"
                           )}
                         >
@@ -192,7 +196,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                 <div className="text-2xl">
                   {logo}
                 </div>
-                <span className="hidden font-bold text-xl sm:inline-block">shadcn.io</span>
+                <span className="hidden font-bold text-xl sm:inline-block">Zupp Task</span>
               </button>
               {/* Navigation menu */}
               {!isMobile && (
@@ -201,11 +205,14 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                   {navigationLinks.map((link, index) => (
                     <NavigationMenuItem key={index}>
                       <button
-                        onClick={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (link.onClick) link.onClick();
+                        }}
                         className={cn(
                           "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline",
-                          link.active 
-                            ? "bg-accent text-accent-foreground" 
+                          link.active
+                            ? "bg-accent text-accent-foreground"
                             : "text-foreground/80 hover:text-foreground"
                         )}
                       >
